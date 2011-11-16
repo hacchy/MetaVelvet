@@ -173,6 +173,12 @@ def detectPeakPandS(dicHisto, xMin, xMax, binWidth,
 
 # ---------- Main function ----------
 
+# Check that argument was provided or complain and exit
+if len(sys.argv) != 2:
+    script_name = sys.argv[0]
+    print 'Usage: ' + script_name + ' <Graph2_file>'
+    sys.exit(1)
+
 # Import stats file
 fin_stats = open(sys.argv[1], "r")
 dicStats = importStats(fin_stats)
