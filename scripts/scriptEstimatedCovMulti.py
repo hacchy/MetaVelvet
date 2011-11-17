@@ -24,17 +24,26 @@ def importStats(fin_stats):
 
     while True:
         line = fin_stats.readline()
+
+        # Exit after last line
         if not line:
             break
 
+        # Skip empty line
+        line = line.rstrip()
+        if not line:
+            continue
+
+        lineFields = line.split("\t")
         if len(dicStats) == 0:
-            listHeader = line.rstrip("\n").split("\t")
+            # Process header line
+            listHeader = lineFields
             for header in listHeader:
                 dicStats[header] = []
         else:
-            listStats = line.rstrip("\n").split("\t")
-            for i in range(len(listStats)):
-                stats = num(listStats[i]) # fea: support arbitrary #rows (Velvet CATEGORIES)
+            # Process line containing coverage values
+            listStats = lineFields
+            for i in range(len(lineFields)):
                 stats = num(listStats[i])
                 dicStats[listHeader[i]].append(stats)
 
@@ -185,7 +194,7 @@ def detectPeakPandS(dicHisto, xMin, xMax, binWidth,
 # Check that argument was provided or complain and exit
 if len(sys.argv) != 2:
     script_name = sys.argv[0]
-    print 'Usage: ' + script_name + ' <Graph2_stats_file>'
+    print 'Usage: %s <Graph2_stats_file>' % (sys.argv[0])
     sys.exit(1)
 
 # Import stats file
