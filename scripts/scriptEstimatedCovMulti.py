@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-import math
-import random
-
 '''Evaluate peaks of coverage from a kmer coverage file (e.g. 
    Graph2-stats.txt)'''
 
+import sys
+import math
 
 # Define functions
 
