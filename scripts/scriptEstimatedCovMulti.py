@@ -5,6 +5,7 @@ import sys
 import math
 import random
 
+'''Evaluate peaks of coverage from a kmer coverage file (e.g. Graph2-stats.txt)'''
 
 # Define functions
 
