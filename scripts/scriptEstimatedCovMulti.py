@@ -5,14 +5,16 @@ import sys
 import math
 import random
 
-'''Evaluate peaks of coverage from a kmer coverage file (e.g. Graph2-stats.txt)'''
+'''Evaluate peaks of coverage from a kmer coverage file (e.g. 
+   Graph2-stats.txt)'''
+
 
 # Define functions
 
 def num(s):
-    '''Take a string representing and convert it to a number. Return a float or
-       int as appropriate. An exception is raised if the string did not represent
-       a number.'''
+    '''Take a string representing and convert it to a number. Return
+       a float or int as appropriate. An exception is raised if the
+       string did not represent a number.'''
     try:
         return int(s)
     except ValueError:
@@ -146,8 +148,8 @@ def setWidthByXMax(xMax):
     return listWidth
 
 
-def detectPeakPandS(dicHisto, xMin, xMax, binWidth, 
-                    thresHeight, listPeakPandS):
+def detectPeakPandS(dicHisto, xMin, xMax, binWidth, thresHeight,
+                    listPeakPandS):
     countIncrease = 0; thresIncrease = 3
     countDecrease = 0; thresDecrease = 3
     beforeHeight = -1
@@ -189,80 +191,89 @@ def detectPeakPandS(dicHisto, xMin, xMax, binWidth,
     return listPeakPandS
 
 
+def check_args():
+    '''Check that an argument was provided or complain and exit.
+       Return the name of the file to use'''
 
-# ---------- Main function ----------
+    if len(sys.argv) != 2:
+        script_name = sys.argv[0]
+        print 'Usage: %s <Graph2_stats_file>' % (sys.argv[0])
+        sys.exit(1)
 
-# Check that argument was provided or complain and exit
-if len(sys.argv) != 2:
-    script_name = sys.argv[0]
-    print 'Usage: %s <Graph2_stats_file>' % (sys.argv[0])
-    sys.exit(1)
+    return sys.argv[1]
 
-# Import stats file
-fin_stats = open(sys.argv[1], "r")
-dicStats = importStats(fin_stats)
 
-# Make weighted histogram
-listPeak = []
-xMin = 0
-xMax = 1000
-binWidth = 4
-widthMovAve = 5
-listPeakPandS = [-1, -1]
-N50 = 0
-thresHeight = 0
-thresConLen = 0
+def main(stats_file):
+    # Import stats file
+    fin_stats = open(stats_file, "r")
+    dicStats = importStats(fin_stats)
 
-while True:
-    # Get N50
-    if len(listPeak) == 0:
-        N50 = getN50(tuple(dicStats["lgth"]))
-        print "N50 : " + str(N50)
-        thresConLen = N50 * 5
-
-    # Get first xMax
-    if len(listPeak) == 0:
-        xMax = getFirstXMax(dicStats, binWidth, thresConLen)
-        print "First xMax : " + str(xMax)
-        
-    # Set width and xMax
-    listWidth = setWidthByXMax(xMax)
-    binWidth = listWidth[0]; widthMovAve = listWidth[1]
-    xMax = setXMax(xMax, binWidth)
-
-    # Make weighted and smoothed histogram
+    # Make weighted histogram
+    listPeak = []
     xMin = 0
-    dicHisto = weightedHisto(dicStats, xMin, xMax, binWidth)
-    dicSmoothHisto = smoothingHisto(dicHisto, xMin, xMax, 
-                                    binWidth, widthMovAve)
-    xMin += binWidth * ((widthMovAve - 1) / 2)
-    xMax -= binWidth * ((widthMovAve - 1) / 2)
+    xMax = 1000
+    binWidth = 4
+    widthMovAve = 5
+    listPeakPandS = [-1, -1]
+    N50 = 0
+    thresHeight = 0
+    thresConLen = 0
 
-    # Get thresHeight
-    if len(listPeak) == 0:
-        thresHeight = dicSmoothHisto[xMax - binWidth]
-        print "Thres Height : " + str(thresHeight)
+    while True:
+        # Get N50
+        if len(listPeak) == 0:
+            N50 = getN50(tuple(dicStats["lgth"]))
+            print "N50 : " + str(N50)
+            thresConLen = N50 * 5
 
-    # Print histogram
-    if len(listPeak) == 0:
-        printHisto(dicSmoothHisto, xMin, xMax, binWidth)
+        # Get first xMax
+        if len(listPeak) == 0:
+            xMax = getFirstXMax(dicStats, binWidth, thresConLen)
+            print "First xMax : " + str(xMax)
+        
+        # Set width and xMax
+        listWidth = setWidthByXMax(xMax)
+        binWidth = listWidth[0]; widthMovAve = listWidth[1]
+        xMax = setXMax(xMax, binWidth)
+    
+        # Make weighted and smoothed histogram
+        xMin = 0
+        dicHisto = weightedHisto(dicStats, xMin, xMax, binWidth)
+        dicSmoothHisto = smoothingHisto(dicHisto, xMin, xMax, 
+                                        binWidth, widthMovAve)
+        xMin += binWidth * ((widthMovAve - 1) / 2)
+        xMax -= binWidth * ((widthMovAve - 1) / 2)
+    
+        # Get thresHeight
+        if len(listPeak) == 0:
+            thresHeight = dicSmoothHisto[xMax - binWidth]
+            print "Thres Height : " + str(thresHeight)
+    
+        # Print histogram
+        if len(listPeak) == 0:
+            printHisto(dicSmoothHisto, xMin, xMax, binWidth)
+    
+        # Detect (primary and) secondary peak
+        listPeakPandS = detectPeakPandS(dicSmoothHisto, xMin, xMax, binWidth, 
+                                        thresHeight, listPeakPandS)
+    
+        # Record peak
+        if len(listPeak) == 0:
+            listPeak.append(listPeakPandS[0])
+        listPeak.append(listPeakPandS[1])
+    
+        # When couldn't detect secondary peak, break
+        if listPeakPandS[1] == -1:
+            listPeak.pop(-1)
+            print listPeak
+            break
+    
+        # Prepare for next peak
+        listPeakPandS[0] = listPeakPandS[1]
+        listPeakPandS[1] = -1
+        xMax = listPeakPandS[0]
 
-    # Detect (primary and) secondary peak
-    listPeakPandS = detectPeakPandS(dicSmoothHisto, xMin, xMax, binWidth, 
-                                    thresHeight, listPeakPandS)
 
-    # Record peak
-    if len(listPeak) == 0:
-        listPeak.append(listPeakPandS[0])
-    listPeak.append(listPeakPandS[1])
-
-    # When couldn't detect secondary peak, break
-    if listPeakPandS[1] == -1:
-        listPeak.pop(-1)
-        print listPeak
-        break
-
-    # Prepare for next peak
-    listPeakPandS[0] = listPeakPandS[1]
-    listPeakPandS[1] = -1
-    xMax = listPeakPandS[0]
+if __name__ == "__main__":
+    stats_file = check_args()
+    main(stats_file)
