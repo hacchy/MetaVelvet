@@ -7,6 +7,17 @@ import random
 
 
 # Define functions
+
+def num(s):
+    '''Take a string representing and convert it to a number. Return a float or
+       int as appropriate. An exception is raised if the string did not represent
+       a number.'''
+    try:
+        return int(s)
+    except ValueError:
+        return float(s)
+
+
 def importStats(fin_stats):
     dicStats = {}
     listHeader = []
@@ -23,10 +34,8 @@ def importStats(fin_stats):
         else:
             listStats = line.rstrip("\n").split("\t")
             for i in range(len(listStats)):
-                if i in [0, 1, 2, 3, 9, 10, 11]:
-                    stats = int(listStats[i])
-                else:
-                    stats = float(listStats[i])
+                stats = num(listStats[i]) # fea: support arbitrary #rows (Velvet CATEGORIES)
+                stats = num(listStats[i])
                 dicStats[listHeader[i]].append(stats)
 
     return dicStats
@@ -176,7 +185,7 @@ def detectPeakPandS(dicHisto, xMin, xMax, binWidth,
 # Check that argument was provided or complain and exit
 if len(sys.argv) != 2:
     script_name = sys.argv[0]
-    print 'Usage: ' + script_name + ' <Graph2_file>'
+    print 'Usage: ' + script_name + ' <Graph2_stats_file>'
     sys.exit(1)
 
 # Import stats file
