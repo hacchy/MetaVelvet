@@ -86,6 +86,7 @@ def smoothingHisto(dicHisto, xMin, xMax, binWidth, widthMovAve):
 
 
 def printHisto(dicHisto, xMin, xMax, binWidth):
+    print "Histogram :"
     for x in range(xMin, xMax, binWidth):
         #print str(x) + " : " + str(int(round(dicHisto[x], 0)))
         lenBar = int(round((dicHisto[x] / 20000), 0)) - 1
@@ -189,6 +190,15 @@ def detectPeakPandS(dicHisto, xMin, xMax, binWidth, thresHeight,
     return listPeakPandS
 
 
+def printPeaks(listPeak):
+    print "Peaks :"
+    print listPeak
+    strList = []
+    for value in listPeak:
+      strList.append(str(value))
+
+    print '_'.join(strList)
+
 def check_args():
     '''Check that an argument was provided or complain and exit.
        Return the name of the file to use'''
@@ -263,7 +273,7 @@ def main(stats_file):
         # When couldn't detect secondary peak, break
         if listPeakPandS[1] == -1:
             listPeak.pop(-1)
-            print listPeak
+            printPeaks(listPeak)
             break
     
         # Prepare for next peak
